@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Random Reddit Comments</title>
+        <meta name='description' content='Random Reddit Comments: An interesting, random look at Reddit.'/>
+        <meta name='author' content='Charles Jian Lai, cjl223@cornell.edu' />
+        <meta name='keywords' content='Reddit, random, comments, interesting
+        deconstructive, internetisbeautiful, PRAW, python, cool, generated,
+        nocontext, no, context, charles, lai, jian'/>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,800,300' rel='stylesheet' type='text/css'>
+        <link href="stylesheets/stylesheet.css" rel="stylesheet" type="text/css">
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="grid-full centered"><h1 class="large-heading">Random Reddit Comments</h1></div>
+            <div class="grid-1"></div>
+            <div class="grid-4 centered">
+        		<form method="post">
+                    <div class="comment_box justified" style="width: 95%; margin-left:auto; margin-right:auto">
+                        <span class="sub-heading">{{comment}}</span>
+                    </div>
+                    <div class="user right" style="width: 95%; margin-left:auto; margin-right:auto">
+                        <span class="sub-sub-heading">{{author}}</span>
+                    </div>
+                    <br>
+                    <div class="info_box left" style="width: 95%; margin-left:auto; margin-right:auto">
+                        {{submission_title}}
+                        {{submission_link}}
+                        {{comment_link}}
+                        {{comment_score}}
+                    </div>
+                    <br>
+        		    <input class="button button-white button-large" type="submit" value="{{action_title}}">
+        		</form>
+            </div>
+            <div class="grid-1"></div>
+        </div>
+    </body>
+</html>
