@@ -43,6 +43,8 @@ def office_hours_key(office_hours_id):
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
+jinja_env.filters['datetime'] = format_datetime
+
 
 # MainHandlerClass
 class Handler(webapp2.RequestHandler):
@@ -85,7 +87,7 @@ class QueueHandler(Handler):
                  WHERE ANCESTOR IS :ok \
                  ORDER BY created ASC"
         parent = office_hours_key(office_hours_id)
-        posts = StudentPost.query(ancestor=office_hours_key(office_hours_id))
+        posts = StudentPost.query(ancestor=office_hours_key(office_hours_id)).order(StudentPost.created)
         self.render("queue.html", office_hours_id=office_hours_id, posts=posts)
 
     def get(self, office_hours_id):
@@ -100,7 +102,7 @@ class PageHandler(Handler):
         self.render("post.html", office_hours_id=office_hours_id, posts=posts, post_id=post_id)
 
     def get(self, office_hours_id, post_id):
-        posts = StudentPost.query(ancestor=office_hours_key(office_hours_id))
+        posts = StudentPost.query(ancestor=office_hours_key(office_hours_id)).order(StudentPost.created)
         self.render_post(office_hours_id, posts, post_id)
 
 
@@ -134,7 +136,7 @@ class DeleteHandler(Handler):
     """
     def get(self, office_hours_id, post_id):
         # Delete a specific post - we are done.
-        posts = StudentPost.query(ancestor=office_hours_key(office_hours_id))
+        posts = StudentPost.query(ancestor=office_hours_key(office_hours_id)).order(StudentPost.created)
         for post in posts:
             if str(post.key.id()) == post_id:
                 post.key.delete()

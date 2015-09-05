@@ -23,9 +23,9 @@
 			<div class="post">
 				<div class="post-heading">
 					<a href="/{{office_hours_id}}/{{post.key.id()}}" class="post-title">{{post.name}}</a>
-					<div class="post-date">{{post.created}}</div>
+					<div class="post-date">{{post.created.strftime('%H:%M / %m-%d-%y ')}}</div>
 				</div>
-				<pre class="post-content">{{post.content | safe}}</pre>
+				<div class="post-content">{{post.content | safe}}</div>
 			</div>
 			<br>
 			<br>
