@@ -22,7 +22,7 @@
 		{% for post in posts %}
 			<div class="post">
 				<div class="post-heading">
-					<a href="/{{office_hours_id}}/{{post.key().id()}}" class="post-title">{{post.name}}</a>
+					<a href="/{{office_hours_id}}/{{post.key.id()}}" class="post-title">{{post.name}}</a>
 					<div class="post-date">{{post.created}}</div>
 				</div>
 				<pre class="post-content">{{post.content | safe}}</pre>

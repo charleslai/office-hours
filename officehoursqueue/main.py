@@ -17,17 +17,27 @@
 import webapp2
 import jinja2
 import os
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 
 # Models
-class OfficeHour(db.Model):
-    office_hours_id = db.StringProperty(required = True)
+class OfficeHour(ndb.Model):
+    office_hours_id = ndb.StringProperty(required = True)
 
-class StudentPost(db.Model):
-    name = db.StringProperty(required = True)
-    content = db.TextProperty(required = True)
-    office_hours_id = db.StringProperty(required = True)
-    created = db.DateTimeProperty(auto_now_add = True)
+class StudentPost(ndb.Model):
+    name = ndb.StringProperty(required = True)
+    content = ndb.TextProperty(required = True)
+    office_hours_id = ndb.StringProperty(required = True)
+    created = ndb.DateTimeProperty(auto_now_add = True)
+
+# We set a parent key on the 'Greetings' to ensure that they are all
+# in the same entity group. Queries across the single entity group
+# will be consistent. However, the write rate should be limited to
+# ~1/second.
+def office_hours_key(office_hours_id):
+    """Constructs a Datastore key for a StudentPost entity.
+    We use office_hours_id as the key.
+    """
+    return ndb.Key('StudentPost', office_hours_id)
 
 # Template Directories
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -46,9 +56,9 @@ class Handler(webapp2.RequestHandler):
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
-class NewOfficeHoursHandler(Handler):
+class OfficeHoursTakerHandler(Handler):
     """
-    Handler for working with new post form to create new queue posts
+    Handler for working for taking user to office hours page.
     """
     def render_form(self, error="", office_hours_id=""):
         self.render("newofficehours.html", error=error, office_hours_id=office_hours_id)
@@ -57,23 +67,13 @@ class NewOfficeHoursHandler(Handler):
         self.render_form()
 
     def post(self):
-    	# Get the office hours id from the form
+        # Get the office hours id from the form
         office_hours_id = self.request.get("office_hours_id")
-        if office_hours_id:
-        	# Check if this office hours already exists
-        	query = "SELECT * FROM OfficeHour \
-    			 	 WHERE office_hours_id = :oh"
-        	office_hours = db.GqlQuery(query, oh=office_hours_id)
-        	if office_hours.count() > 0:
-	        	error = "This office hours id already exists."
-	        	self.render_form(error, office_hours_id)
-	        # If not, go ahead and create it and redirect to new page
-           	oh = OfficeHour(office_hours_id = office_hours_id)
-           	oh.put()
-          	self.redirect('/{0}'.format(office_hours_id))
-    	else:
+        if office_hours_id is None:
             error = "Office Hours ID cannot be empty."
             self.render_form(error, office_hours_id)
+        else:
+            self.redirect('/{0}'.format(office_hours_id))
 
 
 class QueueHandler(Handler):
@@ -81,10 +81,11 @@ class QueueHandler(Handler):
     Handler for displaying the front page of the queue for a given class
     """
     def render_queue(self, office_hours_id):
-    	query = "SELECT * FROM StudentPost \
-    			 WHERE office_hours_id = :oh \
-    			 ORDER BY created ASC"
-        posts = db.GqlQuery(query, oh=office_hours_id)
+        query = "SELECT * FROM StudentPost \
+                 WHERE ANCESTOR IS :ok \
+                 ORDER BY created ASC"
+        parent = office_hours_key(office_hours_id)
+        posts = StudentPost.query(ancestor=office_hours_key(office_hours_id))
         self.render("queue.html", office_hours_id=office_hours_id, posts=posts)
 
     def get(self, office_hours_id):
@@ -95,14 +96,12 @@ class PageHandler(Handler):
     """
     Handler for displaying unique pages for each queue post
     """
-    def render_post(self, office_hours_id, post=""):
-        posts = [post]
-        self.render("post.html", office_hours_id=office_hours_id, posts=posts)
+    def render_post(self, office_hours_id, posts="", post_id=""):
+        self.render("post.html", office_hours_id=office_hours_id, posts=posts, post_id=post_id)
 
     def get(self, office_hours_id, post_id):
-        post_key = db.Key.from_path('StudentPost', int(post_id))
-        post = db.get(post_key)
-        self.render_post(office_hours_id, post)
+        posts = StudentPost.query(ancestor=office_hours_key(office_hours_id))
+        self.render_post(office_hours_id, posts, post_id)
 
 
 class NewPostHandler(Handler):
@@ -111,7 +110,7 @@ class NewPostHandler(Handler):
     """
     def render_form(self, name="", content="", error="", office_hours_id=""):
         self.render("newpost.html", name=name, content=content, 
-        							error=error, office_hours_id=office_hours_id)
+                                    error=error, office_hours_id=office_hours_id)
 
     def get(self, office_hours_id):
         self.render_form(office_hours_id = office_hours_id)
@@ -120,7 +119,8 @@ class NewPostHandler(Handler):
         name = self.request.get("name")
         content = self.request.get("content")
         if name and content:
-            sp = StudentPost(name = name, content = content, office_hours_id = office_hours_id)
+            parent = office_hours_key(office_hours_id)
+            sp = StudentPost(parent = parent, name = name, content = content, office_hours_id = office_hours_id)
             sp.put()
             self.redirect('/{0}'.format(office_hours_id))
         else:
@@ -133,14 +133,17 @@ class DeleteHandler(Handler):
     Handler for working with new post form to create new queue posts
     """
     def get(self, office_hours_id, post_id):
-    	# Delete a specific post - we are done.
-    	post_key = db.Key.from_path('StudentPost', int(post_id))
-        db.delete(post_key)
+        # Delete a specific post - we are done.
+        posts = StudentPost.query(ancestor=office_hours_key(office_hours_id))
+        for post in posts:
+            if str(post.key.id()) == post_id:
+                post.key.delete()
+                break
         self.redirect('/{0}'.format(office_hours_id))
 
 
 app = webapp2.WSGIApplication([
-    ('/', NewOfficeHoursHandler),
+    ('/', OfficeHoursTakerHandler),
     ('/([a-zA-Z0-9_-]+)', QueueHandler),
     ('/([a-zA-Z0-9_-]+)/newpost', NewPostHandler),
     ('/([a-zA-Z0-9_-]+)/([0-9]+)', PageHandler),
