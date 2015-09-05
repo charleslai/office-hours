@@ -6,7 +6,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>{{office_hours_id}}</title>
+        <title></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link type="text/css" rel="stylesheet" href="/stylesheets/stylesheet.css" />
@@ -18,20 +18,15 @@
         <![endif]-->
 
         <!-- Add your site or application content here -->
-		<a href="/{{office_hours_id}}" class="main-title">{{office_hours_id}}</a>
-		{% for post in posts %}
-			<div class="post">
-				<div class="post-heading">
-					<a href="/{{office_hours_id}}/{{post.key().id()}}" class="post-title">{{post.name}}</a>
-					<div class="post-date">{{post.created}}</div>
-				</div>
-				<pre class="post-content">{{post.content | safe}}</pre>
-			</div>
-			<br>
-			<br>
-		{% endfor %}
-        <a class="button button-white" href="/{{office_hours_id}}">Refresh</a>
-        <a class="button button-green" href="/{{office_hours_id}}/newpost">New Question</a>
+        <h1>New Office Hours</h1>
+		<form method="post">
+			<label>
+				<div>Office Hours ID</div>
+				<input type="text" name="office_hours_id" value="{{office_hours_id}}">
+			</label>
+			<div class="error">{{error}}</div>
+			<input type="submit">
+		</form>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
 

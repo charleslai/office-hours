@@ -10,3 +10,13 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: StudentPost
+  properties:
+  - name: office_hours_id
+  - name: created
+
+- kind: StudentPost
+  properties:
+  - name: office_hours_id
+  - name: created
+    direction: desc
